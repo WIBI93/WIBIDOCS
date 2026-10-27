@@ -1,0 +1,87 @@
+name: Publicar en GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+env:
+  # Editor de código abierto (AGPL-3.0) basado en ONLYOFFICE que se ejecuta en el navegador.
+  # Se fija una versión concreta para que la web no cambie sola. Para actualizar, cambia el SHA.
+  UPSTREAM_REPO: ranuts/document
+  UPSTREAM_SHA: 2c26ad7aafb0978162f2d3af1aba0806ed8749cc
+
+jobs:
+  build:
+    name: Construir la web
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Descargar este repositorio
+        uses: actions/checkout@v7
+
+      - name: Descargar el editor
+        run: |
+          git init editor
+          cd editor
+          git remote add origin "https://github.com/${UPSTREAM_REPO}.git"
+          git fetch --depth 1 origin "${UPSTREAM_SHA}"
+          git checkout FETCH_HEAD
+
+      - name: Instalar pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          package_json_file: editor/package.json
+          run_install: false
+
+      - name: Instalar Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: "lts/*"
+
+      - name: Instalar dependencias
+        working-directory: editor
+        run: pnpm install --frozen-lockfile
+
+      - name: Construir
+        working-directory: editor
+        env:
+          BUILD_REVISION: ${{ env.UPSTREAM_SHA }}
+        run: pnpm run build
+
+      - name: Añadir nuestros archivos propios
+        run: |
+          if [ -d overlay ]; then
+            cp -r overlay/. editor/dist/
+          fi
+
+      - name: Configurar Pages
+        uses: actions/configure-pages@v5
+
+      - name: Subir la web
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: editor/dist
+
+  deploy:
+    name: Publicar
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Publicar en GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5
