@@ -6,7 +6,8 @@ App web personal con editores de texto, hojas de cálculo y presentaciones compa
 
 El repositorio no guarda el editor. En cada publicación, GitHub Actions descarga una versión fija del proyecto de código abierto [ranuts/document](https://github.com/ranuts/document) (basado en el motor de ONLYOFFICE, que se ejecuta en el navegador sin servidor), lo construye y lo publica en GitHub Pages.
 
-- `.github/workflows/pages.yml`: descarga, construye y publica.
+- `build.sh`: descarga, construye y deja la web en `editor/dist` (lo ejecuta Cloudflare Pages).
+- `.github/workflows/pages.yml`: antiguo intento con GitHub Pages, ya solo manual.
 - `overlay/`: archivos propios que se copian encima de la web construida (pantalla de inicio, ajustes de aspecto para tablet).
 
 ## Licencia

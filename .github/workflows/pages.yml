@@ -1,9 +1,8 @@
 name: Publicar en GitHub Pages
 
 on:
-  push:
-    branches:
-      - main
+  # Desactivado el arranque automático: la web ahora se publica en Cloudflare Pages
+  # (GitHub Pages no admite las cabeceras que necesita el editor ni funciona bien en una subcarpeta).
   workflow_dispatch:
 
 permissions:
